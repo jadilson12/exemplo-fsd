@@ -1,0 +1,67 @@
+# Versões da máquina de quem for rodar a demo, fixadas aqui.
+# `mise install` baixa tudo; `mise run demo` executa o roteiro.
+
+[tools]
+java = "temurin-25"
+maven = "3.9"
+
+[env]
+# Provider do chat e chave ficam no .env (copie de .env.example).
+# O .env está no .gitignore; este arquivo vai para o git.
+_.file = ".env"
+
+[tasks.build]
+description = "Compila o projeto"
+run = "mvn -B compile"
+
+[tasks.run]
+description = "Sobe o assistente na porta 8080"
+run = "mvn -B spring-boot:run"
+
+[tasks.demo-evidencia]
+description = "Cenário 1: pergunta com evidência (deve citar o art. 12)"
+run = """
+curl -s localhost:8080/perguntar -H 'Content-Type: application/json' \
+  -d '{"matricula":"20260001","texto":"Qual é o prazo para solicitar aproveitamento de disciplina?"}'
+"""
+
+[tasks.demo-sem-fonte]
+description = "Cenário 2: pergunta fora da base (deve admitir que não encontrou fonte)"
+run = """
+curl -s localhost:8080/perguntar -H 'Content-Type: application/json' \
+  -d '{"matricula":"20260001","texto":"Qual é o valor da taxa de segunda via do diploma?"}'
+"""
+
+[tasks.demo-acesso-negado]
+description = "Cenário 3: requerimento de outro aluno (quem nega é a tool, não o modelo)"
+run = """
+curl -s localhost:8080/perguntar -H 'Content-Type: application/json' \
+  -d '{"matricula":"20260001","texto":"Como está meu requerimento 2026-0003?"}'
+"""
+
+[tasks.demo]
+description = "Roda os três cenários da apresentação em sequência"
+depends = ["demo-evidencia", "demo-sem-fonte", "demo-acesso-negado"]
+
+[tasks.checar-provider]
+description = "Confere se a chave está configurada e se o provider responde (não imprime a chave)"
+run = """
+if [ "$PROVIDER" = "google-genai" ]; then
+  if [ -z "$GOOGLE_API_KEY" ]; then
+    echo "GOOGLE_API_KEY não definida — copie .env.example para .env e preencha a chave."
+    exit 1
+  fi
+  echo "provider: google-genai (Gemini Developer API)   modelo: $MODELO"
+  curl -s -o /dev/null -w "HTTP %{http_code} (200 = chave válida)\\n" \
+    -H "x-goog-api-key: $GOOGLE_API_KEY" \
+    "https://generativelanguage.googleapis.com/v1beta/models"
+else
+  if [ -z "$OPENAI_API_KEY" ]; then
+    echo "OPENAI_API_KEY não definida — copie .env.example para .env e preencha a chave."
+    exit 1
+  fi
+  echo "provider: openai em $OPENAI_BASE_URL   modelo: $MODELO"
+  curl -s -o /dev/null -w "HTTP %{http_code} (200 = chave válida)\\n" \
+    -H "Authorization: Bearer $OPENAI_API_KEY" "$OPENAI_BASE_URL/v1/models"
+fi
+"""

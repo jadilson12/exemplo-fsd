@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.1</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>br.faculdade</groupId>
+    <artifactId>assistente-universitario</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>assistente-universitario</name>
+    <description>Exemplo minimo de RAG + Tool calling com Spring AI</description>
+
+    <properties>
+        <java.version>25</java.version>
+        <!-- Toda a camada de IA vem do Spring AI; nenhum outro framework de IA entra aqui. -->
+        <spring-ai.version>2.0.1</spring-ai.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!--
+            Starter do protocolo OpenAI. Ele NAO obriga a usar a OpenAI:
+            qualquer gateway compativel (OpenRouter, LiteLLM, Ollama em modo
+            compativel) e' apontado so trocando `spring.ai.openai.base-url`.
+        -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-openai</artifactId>
+        </dependency>
+
+        <!--
+            Starter do Google GenAI (Gemini). Atende tanto a Gemini Developer
+            API (so com api-key) quanto o Vertex AI (project-id + location).
+            Qual dos dois providers atende e' decidido por PROVIDER no .env.
+        -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-google-genai</artifactId>
+        </dependency>
+
+        <!-- Embeddings do RAG pelo mesmo provider e pela mesma chave. -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-google-genai-embedding</artifactId>
+        </dependency>
+
+        <!--
+            Embeddings rodando dentro da JVM (modelo ONNX all-MiniLM-L6-v2).
+            Fica como alternativa: por padrao o embedding sai pelo gateway
+            (PROVIDER_EMBEDDING=openai); com PROVIDER_EMBEDDING=transformers
+            a demo de RAG roda offline, sem chamar API nenhuma.
+        -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-transformers</artifactId>
+        </dependency>
+
+        <!-- QuestionAnswerAdvisor: o advisor pronto de RAG. -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-vector-store-advisor</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <jvmArguments>--enable-native-access=ALL-UNNAMED</jvmArguments>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

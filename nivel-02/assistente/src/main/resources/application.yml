@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: assistente-mcp
+
+  ai:
+    model:
+      chat: openai
+      # PROVIDER_EMBEDDING=transformers volta o embedding para dentro da JVM.
+      embedding: ${PROVIDER_EMBEDDING:openai}
+
+    openai:
+      base-url: ${OPENAI_BASE_URL:https://openrouter.ai/api}
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: ${MODELO:openai/gpt-4o-mini}
+          temperature: 0.1
+      embedding:
+        options:
+          # Vetoriza os regulamentos e a pergunta, pelo mesmo gateway do chat.
+          model: ${MODELO_EMBEDDING}
+
+    mcp:
+      client:
+        name: assistente-academico
+        version: 1.0.0
+        request-timeout: 30s
+        type: SYNC
+        # Conexão com o servidor da secretaria. Trocar o servidor de lugar,
+        # ou acrescentar um segundo servidor MCP, é mudança de configuração.
+        streamable-http:
+          connections:
+            secretaria:
+              url: http://localhost:8081
+
+demo:
+  # Aluno "autenticado" da demonstração. Vai no header X-Matricula de toda
+  # chamada MCP; o modelo não tem como alterar esse valor.
+  matricula: ${MATRICULA:20260001}
+
+logging:
+  level:
+    org.springframework.ai.tool: DEBUG
+    org.springframework.ai.transformers: WARN

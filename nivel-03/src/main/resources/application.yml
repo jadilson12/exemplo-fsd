@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: assistente-adk
+  main:
+    # Sem servidor web: a interface é a TUI. O banner sai do caminho da tela.
+    web-application-type: none
+    banner-mode: off
+
+  ai:
+    model:
+      chat: openai
+      # PROVIDER_EMBEDDING=transformers volta o embedding para dentro da JVM.
+      embedding: ${PROVIDER_EMBEDDING:openai}
+
+    openai:
+      # OpenRouter por padrão; LiteLLM é http://localhost:4000.
+      base-url: ${OPENAI_BASE_URL:https://openrouter.ai/api}
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          model: ${MODELO:openai/gpt-5.6-luna}
+          temperature: 0.1
+      embedding:
+        options:
+          # Vetoriza os regulamentos e a pergunta, pelo mesmo gateway do chat.
+          model: ${MODELO_EMBEDDING:openai/text-embedding-ada-002}
+
+demo:
+  # Aluno "autenticado". Vai para o estado da sessão do ADK; as tools leem dali.
+  matricula: ${MATRICULA:20260001}
+
+assistente:
+  # "tui" abre o terminal (padrão); "dev-ui" entrega o agente para a Dev UI
+  # web do Google ADK em http://localhost:8080/dev-ui.
+  interface: ${INTERFACE:tui}
+
+logging:
+  # A TUI é a saída da aplicação — o log de framework só atrapalharia a tela.
+  level:
+    root: WARN
+    br.faculdade.adk: INFO
+  pattern:
+    console: "%msg%n"

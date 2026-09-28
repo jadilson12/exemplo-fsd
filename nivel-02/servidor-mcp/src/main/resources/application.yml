@@ -1,0 +1,19 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: servidor-mcp-secretaria
+
+  ai:
+    mcp:
+      server:
+        name: secretaria-academica
+        version: 1.0.0
+        # STREAMABLE = MCP sobre HTTP (endpoint /mcp). A alternativa seria
+        # STDIO, em que o host sobe o servidor como processo filho.
+        protocol: STREAMABLE
+
+logging:
+  level:
+    br.faculdade.mcp: INFO

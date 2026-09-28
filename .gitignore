@@ -1,0 +1,7 @@
+target/
+mise.local.toml
+.env
+!.env.example
+.idea/
+*.iml
+.DS_Store

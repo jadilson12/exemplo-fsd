@@ -1,0 +1,76 @@
+spring:
+  application:
+    name: assistente-universitario
+
+  ai:
+    model:
+      # Quem atende cada tipo de modelo — tudo por variavel de ambiente.
+      #
+      #   PROVIDER=openai       -> OpenRouter, OpenAI, Ollama ou LiteLLM
+      #                            (todos falam o protocolo OpenAI; muda so a base-url)
+      #   PROVIDER=google-genai -> Gemini (Google)
+      #
+      #   PROVIDER_EMBEDDING=openai       -> embedding pelo mesmo gateway do chat
+      #   PROVIDER_EMBEDDING=google-genai -> embedding pelo Gemini
+      #   PROVIDER_EMBEDDING=transformers -> ONNX dentro da JVM, sem chave e sem rede
+      chat: ${PROVIDER:openai}
+      embedding: ${PROVIDER_EMBEDDING:openai}
+      embedding.text: ${PROVIDER_EMBEDDING:openai}
+
+    openai:
+      # ---------------------------------------------------------------
+      # Gateways que falam o protocolo OpenAI (PROVIDER=openai):
+      #
+      # OpenRouter (nuvem, centenas de modelos):
+      #   OPENAI_BASE_URL=https://openrouter.ai/api
+      #   MODELO=openai/gpt-4o-mini, anthropic/claude-3.5-haiku, ...
+      #
+      # OpenAI direto:
+      #   OPENAI_BASE_URL=https://api.openai.com
+      #   MODELO=gpt-4o-mini
+      #
+      # Ollama local (expoe a API compativel em /v1, nao valida chave):
+      #   OPENAI_BASE_URL=http://localhost:11434
+      #   MODELO=qwen3:8b            (precisa suportar tool calling)
+      #
+      # LiteLLM (proxy self-hosted, util para custo/limite/log central):
+      #   OPENAI_BASE_URL=http://localhost:4000
+      #   MODELO=o alias declarado no config.yaml do LiteLLM
+      # ---------------------------------------------------------------
+      base-url: ${OPENAI_BASE_URL:https://openrouter.ai/api}
+      api-key: ${OPENAI_API_KEY:nao-usada}
+      chat:
+        options:
+          model: ${MODELO:openai/gpt-4o-mini}
+          # Temperatura baixa: a demo precisa de resposta estavel entre execucoes.
+          temperature: 0.1
+      embedding:
+        options:
+          # Modelo que vetoriza os regulamentos e a pergunta.
+          model: ${MODELO_EMBEDDING}
+
+    google:
+      genai:
+        # ---------------------------------------------------------------
+        # PROVIDER=google-genai -> Gemini Developer API (chave do AI Studio).
+        # Para falar com o Vertex AI, troque as duas `api-key` abaixo por
+        # `project-id` + `location` (Application Default Credentials).
+        # O default existe porque o starter do Google exige uma das duas
+        # configuracoes mesmo quando quem atende e' o PROVIDER=openai.
+        # ---------------------------------------------------------------
+        api-key: ${GOOGLE_API_KEY:nao-usada}
+        chat:
+          options:
+            model: ${MODELO:gemini-3.8-flash}
+            temperature: 0.1
+        embedding:
+          api-key: ${GOOGLE_API_KEY:nao-usada}
+          text:
+            options:
+              model: ${MODELO_EMBEDDING:gemini-embedding-001}
+
+logging:
+  level:
+    # Mostra no console a chamada de tool decidida pelo modelo (bom para a demo).
+    org.springframework.ai.tool: DEBUG
+    org.springframework.ai.transformers: WARN
